@@ -2335,9 +2335,20 @@ void CClientShadowMgr::BuildOrthoShadow( IClientRenderable* pRenderable,
 	// Clamp the minimum size
 	Vector2DMax( size, Vector2D(10.0f, 10.0f), size );
 
+	// A player's render bounds are larger than its actual collision bounds 
+	// which can cause shadows to be improperly projected onto walls.
+	// Use the absbox for players instead
+	C_BaseEntity *pEnt = pRenderable->GetIClientUnknown()->GetBaseEntity();
+	Vector localMins = mins;
+    	Vector localMaxs = maxs;
+	if( pEnt && pEnt->IsPlayer() )
+	{
+		localMins = pEnt->CollisionProp()->OBBMins();
+		localMaxs = pEnt->CollisionProp()->OBBMaxs();
+	}
 	// Place the origin at the point with min dot product with shadow dir
 	Vector org;
-	float falloffStart = ComputeLocalShadowOrigin( pRenderable, mins, maxs, localShadowDir, 2.0f, org );
+	float falloffStart = ComputeLocalShadowOrigin( pRenderable, localMins, localMaxs, localShadowDir, 2.0f, org );
 
 	// Transform the local origin into world coordinates
 	Vector worldOrigin = pRenderable->GetRenderOrigin( );
@@ -2524,9 +2535,20 @@ void CClientShadowMgr::BuildRenderToTextureShadow( IClientRenderable* pRenderabl
 	size.x += 2.0f * TEXEL_SIZE_PER_CASTER_SIZE;
 	size.y += 2.0f * TEXEL_SIZE_PER_CASTER_SIZE;
 
+	// A player's render bounds are larger than its actual collision bounds 
+	// which can cause shadows to be improperly projected onto walls.
+	// Use the absbox for players instead
+	C_BaseEntity *pEnt = pRenderable->GetIClientUnknown()->GetBaseEntity();
+	Vector localMins = mins;
+    	Vector localMaxs = maxs;
+	if( pEnt && pEnt->IsPlayer() )
+	{
+		localMins = pEnt->CollisionProp()->OBBMins();
+		localMaxs = pEnt->CollisionProp()->OBBMaxs();
+	}
 	// Place the origin at the point with min dot product with shadow dir
 	Vector org;
-	float falloffStart = ComputeLocalShadowOrigin( pRenderable, mins, maxs, localShadowDir, 1.0f, org );
+	float falloffStart = ComputeLocalShadowOrigin( pRenderable, localMins, localMaxs, localShadowDir, 1.0f, org );
 
 	// Transform the local origin into world coordinates
 	Vector worldOrigin = pRenderable->GetRenderOrigin( );
